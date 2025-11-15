@@ -1,0 +1,229 @@
+# Arquitetura dos Serviços
+
+## Visão Geral
+
+Os serviços são responsáveis por lógica de negócio, integrações externas e gerenciamento de estado global. Eles seguem o padrão **Singleton** para garantir uma única instância em todo o app.
+
+## Padrão Singleton
+
+Todos os serviços principais implementam o padrão Singleton:
+
+```dart
+class MyService {
+  static final MyService _instance = MyService._internal();
+  factory MyService() => _instance;
+  MyService._internal();
+  
+  // Métodos e propriedades
+}
+```
+
+## Serviços Principais
+
+### 1. AnalyticsService
+**Localização**: `lib/services/analytics_service.dart`
+
+**Responsabilidades**:
+- Tracking de eventos usando Mixpanel
+- Screen views
+- User properties
+- Eventos customizados
+
+**Inicialização**:
+```dart
+await AnalyticsService().initialize();
+```
+
+**Uso**:
+```dart
+AnalyticsService().logEvent('Event Name', parameters: {
+  'key': 'value',
+});
+```
+
+**Eventos Principais**:
+- `Onboarding Started`
+- `Camera Opened`
+- `Photo Taken`
+- `Filter Applied`
+- `Widget Added`
+- `Photo Shared`
+- `Paywall Viewed`
+- `Purchase Completed`
+
+**Configuração**:
+- Token Mixpanel: `08cb74f035c87d8efb1b3cb49f97a0ec`
+- Tracking automático desabilitado
+- Opt-out padrão: `false`
+
+### 2. RevenueCatService
+**Localização**: `lib/services/revenue_cat_service.dart`
+
+**Responsabilidades**:
+- Gerenciamento de assinaturas
+- Verificação de status premium
+- Compra e restauração de produtos
+- Gerenciamento de entitlements
+
+**Inicialização**:
+```dart
+await RevenueCatService().initialize();
+```
+
+**Configuração**:
+- API Key: `appl_OVNIKewaANxIhFiMFZyMpzIdPOS`
+- Entitlement ID: `Caki Pro`
+- Offering ID: `sale`
+- Product IDs: `monthly`, `yearly`, `lifetime`
+
+**Métodos Principais**:
+```dart
+// Verificar se é premium
+bool isPro = RevenueCatService().isPro;
+
+// Obter pacotes disponíveis
+List<Package> packages = await RevenueCatService().getAvailablePackages();
+
+// Comprar pacote
+CustomerInfo info = await RevenueCatService().purchasePackage(package);
+
+// Restaurar compras
+CustomerInfo info = await RevenueCatService().restorePurchases();
+```
+
+**Streams**:
+- `customerInfoStream` - Mudanças no CustomerInfo
+- `purchaseStream` - Compras realizadas
+
+### 3. NotificationService
+**Localização**: `lib/services/notification_service.dart`
+
+**Responsabilidades**:
+- Gerenciamento de notificações push
+- Handler de mensagens em background
+- Configuração de notificações locais
+
+**Handler de Background**:
+```dart
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Processar mensagem em background
+}
+```
+
+### 4. HealthService
+**Localização**: `lib/services/health_service.dart`
+
+**Responsabilidades**:
+- Integração com HealthKit (iOS) e Google Fit (Android)
+- Leitura de dados de treino
+- Conversão para modelo `WorkoutData`
+
+**Métodos Principais**:
+```dart
+// Obter treinos recentes
+List<WorkoutData> workouts = await HealthService().getRecentWorkouts();
+
+// Verificar permissões
+bool hasPermission = await HealthService().hasPermission();
+```
+
+### 5. WeatherService
+**Localização**: `lib/services/weather_service.dart`
+
+**Responsabilidades**:
+- Obter temperatura atual baseada em localização
+- Integração com API de clima
+- Cache de dados de temperatura
+
+**Uso**:
+```dart
+String? temperature = await WeatherService().getCurrentTemperature();
+```
+
+### 6. StreakService
+**Localização**: `lib/services/streak_service.dart`
+
+**Responsabilidades**:
+- Calcular sequências de treinos (streaks)
+- Armazenar dados de streaks
+- Exibir widgets de streak
+
+### 7. OnboardingService
+**Localização**: `lib/services/onboarding_service.dart`
+
+**Responsabilidades**:
+- Gerenciar status de onboarding
+- Verificar se onboarding foi completado
+- Salvar preferências do usuário
+
+**Métodos**:
+```dart
+// Verificar se precisa mostrar onboarding
+bool needsOnboarding = await OnboardingService().needsOnboarding();
+
+// Marcar onboarding como completo
+await OnboardingService().completeOnboarding();
+```
+
+### 8. DevPreferencesService
+**Localização**: `lib/services/dev_preferences_service.dart`
+
+**Responsabilidades**:
+- Preferências de desenvolvimento
+- Flags de debug
+- Configurações de teste
+
+## Inicialização dos Serviços
+
+Os serviços são inicializados no `main.dart`:
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Firebase
+  await Firebase.initializeApp();
+  
+  // RevenueCat
+  await RevenueCatService().initialize();
+  
+  // Analytics
+  await AnalyticsService().initialize();
+  
+  runApp(const CakiApp());
+}
+```
+
+## Tratamento de Erros
+
+Todos os serviços têm tratamento de erro robusto:
+
+```dart
+try {
+  await Service().initialize();
+} catch (e) {
+  debugPrint('⚠️ Erro ao inicializar: $e');
+  // App continua funcionando mesmo se serviço falhar
+}
+```
+
+## Streams e Reatividade
+
+Alguns serviços expõem streams para reatividade:
+
+```dart
+// RevenueCat
+RevenueCatService().customerInfoStream.listen((customerInfo) {
+  // Atualizar UI quando status premium mudar
+});
+```
+
+## Boas Práticas
+
+1. **Sempre verificar inicialização**: Use `isInitialized` antes de usar serviços
+2. **Tratar erros graciosamente**: Não quebrar o app se serviço falhar
+3. **Usar streams quando apropriado**: Para dados que mudam frequentemente
+4. **Limpar recursos**: Implementar `dispose()` quando necessário
+5. **Logging**: Usar `debugPrint` para debugging
+

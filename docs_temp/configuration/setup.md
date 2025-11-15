@@ -1,0 +1,313 @@
+# Configuração e Setup
+
+## Configuração Inicial
+
+### 1. Configuração do Firebase
+
+#### Criar Projeto Firebase
+
+1. Acesse [Firebase Console](https://console.firebase.google.com/)
+2. Crie um novo projeto
+3. Adicione apps iOS e Android
+
+#### iOS
+
+1. Baixe `GoogleService-Info.plist`
+2. Coloque em `ios/Runner/GoogleService-Info.plist`
+3. Configure no Xcode se necessário
+
+#### Android
+
+1. Baixe `google-services.json`
+2. Coloque em `android/app/google-services.json`
+3. O plugin do Firebase já está configurado no `build.gradle`
+
+#### Habilitar Serviços
+
+- **Cloud Messaging**: Para notificações push
+- **Analytics**: Para analytics (opcional)
+
+### 2. Configuração do RevenueCat
+
+#### Criar Conta
+
+1. Acesse [RevenueCat](https://www.revenuecat.com/)
+2. Crie uma conta e projeto
+3. Obtenha a API Key
+
+#### Configurar no App
+
+Edite `lib/services/revenue_cat_service.dart`:
+
+```dart
+static const String _apiKey = 'SUA_API_KEY_AQUI';
+static const String _entitlementId = 'Caki Pro';
+static const String _offeringId = 'sale';
+```
+
+#### Configurar Produtos
+
+1. No dashboard do RevenueCat, crie produtos:
+   - `monthly` - Assinatura mensal
+   - `yearly` - Assinatura anual
+   - `lifetime` - Compra única
+
+2. Configure os produtos nas stores:
+   - **App Store Connect** (iOS)
+   - **Google Play Console** (Android)
+
+3. Crie o entitlement `Caki Pro`
+
+4. Crie o offering `sale` com os produtos
+
+### 3. Configuração do Mixpanel
+
+#### Criar Projeto
+
+1. Acesse [Mixpanel](https://mixpanel.com/)
+2. Crie um projeto
+3. Obtenha o token do projeto
+
+#### Configurar no App
+
+Edite `lib/services/analytics_service.dart`:
+
+```dart
+static const String _mixpanelToken = 'SEU_TOKEN_AQUI';
+```
+
+### 4. Configuração de Permissões
+
+#### iOS (Info.plist)
+
+Adicione em `ios/Runner/Info.plist`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Precisamos acessar sua câmera para capturar fotos de treino</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Precisamos acessar sua galeria para selecionar fotos</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Precisamos de sua localização para obter dados de clima</string>
+<key>NSHealthShareUsageDescription</key>
+<string>Precisamos acessar seus dados de saúde para exibir informações de treino</string>
+<key>NSHealthUpdateUsageDescription</key>
+<string>Precisamos atualizar seus dados de saúde</string>
+```
+
+#### Android (AndroidManifest.xml)
+
+As permissões já estão configuradas em `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.CAMERA"/>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+```
+
+### 5. Configuração de Fontes
+
+As fontes Switzer já estão configuradas no `pubspec.yaml`:
+
+```yaml
+fonts:
+  - family: Switzer
+    fonts:
+      - asset: fonts/Switzer-Regular.otf
+        weight: 400
+      # ... outros pesos
+```
+
+### 6. Configuração de Assets
+
+Os assets estão configurados no `pubspec.yaml`:
+
+```yaml
+assets:
+  - android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+  - assets/images/logo.svg
+  - assets/images/logo_camera.svg
+  - assets/images/share_icon.svg
+  - assets/images/onboarding-background.png
+```
+
+## Configurações de Build
+
+### Android
+
+#### build.gradle (app)
+
+```gradle
+android {
+    compileSdkVersion 34
+    
+    defaultConfig {
+        applicationId "com.example.photosport"
+        minSdkVersion 21
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0.4"
+    }
+}
+```
+
+#### ProGuard (Release)
+
+Se usar ProGuard, adicione regras em `android/app/proguard-rules.pro`:
+
+```proguard
+-keep class com.revenuecat.** { *; }
+-keep class com.mixpanel.** { *; }
+```
+
+### iOS
+
+#### Info.plist
+
+Configure versão e bundle identifier:
+
+```xml
+<key>CFBundleShortVersionString</key>
+<string>1.0.4</string>
+<key>CFBundleVersion</key>
+<string>1</string>
+```
+
+#### Podfile
+
+O Podfile já está configurado. Execute:
+
+```bash
+cd ios
+pod install
+```
+
+## Variáveis de Ambiente
+
+### Configuração de Desenvolvimento
+
+Crie `lib/config/dev_config.dart`:
+
+```dart
+class DevConfig {
+  static const bool enableDebugLogs = true;
+  static const bool enableAnalytics = true;
+  static const String environment = 'development';
+}
+```
+
+### Configuração de Produção
+
+Use variáveis de ambiente ou configuração condicional:
+
+```dart
+const bool isProduction = bool.fromEnvironment('dart.vm.product');
+```
+
+## Configurações de Notificações
+
+### Firebase Cloud Messaging
+
+1. Configure no Firebase Console
+2. Gere certificados APNs (iOS)
+3. Configure no Android (já configurado)
+
+### Notificações Locais
+
+As notificações locais são gerenciadas por `flutter_local_notifications`.
+
+## Configurações de Analytics
+
+### Mixpanel
+
+- Token configurado em `analytics_service.dart`
+- Eventos customizados definidos
+- Screen views automáticos (se configurado)
+
+### Eventos Customizados
+
+Todos os eventos estão documentados em `lib/instrumentacao/eventos.md`.
+
+## Configurações de Assinaturas
+
+### RevenueCat
+
+- API Key configurada
+- Entitlements configurados
+- Offerings configurados
+- Produtos configurados nas stores
+
+### Verificação de Status Premium
+
+O app verifica status premium através de:
+
+```dart
+bool isPro = RevenueCatService().isPro;
+```
+
+## Configurações de Health
+
+### iOS (HealthKit)
+
+1. Habilite HealthKit no Xcode
+2. Configure capabilities no projeto
+3. Adicione permissões no Info.plist
+
+### Android (Google Fit)
+
+1. Configure no Google Play Console
+2. Adicione permissões no AndroidManifest.xml
+3. Configure OAuth (se necessário)
+
+## Troubleshooting
+
+### Firebase não inicializa
+
+1. Verifique arquivos de configuração
+2. Verifique permissões
+3. Verifique versão do Firebase SDK
+
+### RevenueCat não funciona
+
+1. Verifique API Key
+2. Verifique configuração de produtos
+3. Verifique entitlements
+4. Teste em sandbox
+
+### Mixpanel não envia eventos
+
+1. Verifique token
+2. Verifique inicialização
+3. Verifique logs de debug
+
+### Permissões não funcionam
+
+1. Verifique configuração no Info.plist/AndroidManifest.xml
+2. Solicite permissões em runtime
+3. Verifique status de permissões
+
+## Checklist de Configuração
+
+- [ ] Firebase configurado (iOS e Android)
+- [ ] RevenueCat configurado
+- [ ] Mixpanel configurado
+- [ ] Permissões configuradas
+- [ ] Fontes configuradas
+- [ ] Assets configurados
+- [ ] Build configurado (iOS e Android)
+- [ ] Notificações configuradas
+- [ ] Health configurado (se necessário)
+- [ ] Testes funcionando
+
+## Próximos Passos
+
+Após configurar tudo:
+
+1. Execute `flutter pub get`
+2. Execute `flutter run` para testar
+3. Verifique logs de inicialização
+4. Teste funcionalidades principais
+5. Configure CI/CD (se necessário)
+
