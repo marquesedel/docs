@@ -1,0 +1,223 @@
+---
+title: "Modelos de Dados"
+description: "Estruturas de dados e modelos do Caki"
+---
+
+## Visão Geral
+
+Os modelos definem a estrutura de dados usada em todo o app. Eles são classes Dart simples que representam entidades do domínio.
+
+## Modelos Principais
+
+### 1. WorkoutData
+**Localização**: `lib/models/workout_data.dart`
+
+Representa dados de um treino/exercício.
+
+**Propriedades**:
+```dart
+class WorkoutData {
+  final String distance;           // Ex: "17.1 km"
+  final String movingTime;          // Ex: "2:25:10"
+  final String elevation;           // Ex: "176 m"
+  final String pace;                // Ex: "8:30/km"
+  final String calories;           // Ex: "850 kcal"
+  final DateTime date;              // Data do treino
+  final String activityType;        // Ex: "Running", "Cycling"
+  final String? temperature;        // Temperatura (opcional)
+  
+  // Valores numéricos brutos
+  final double distanceMeters;
+  final double elevationMeters;
+  final Duration duration;
+}
+```
+
+**Construtores**:
+- `WorkoutData()` - Construtor padrão
+- `WorkoutData.mock()` - Dados mockados para testes
+- `WorkoutData.fromHealthData()` - A partir de dados do Health Service
+
+**Métodos Úteis**:
+```dart
+// Data formatada
+String formattedDate = workoutData.formattedDate; // "dd MMM yyyy, HH:mm"
+
+// Emoji da atividade
+String emoji = workoutData.activityEmoji; // "🏃", "🚴", etc.
+```
+
+**Exemplo de Uso**:
+```dart
+final workout = WorkoutData.fromHealthData(
+  distanceMeters: 17100.0,
+  duration: Duration(hours: 2, minutes: 25, seconds: 10),
+  elevationMeters: 176.0,
+  caloriesKcal: 850.0,
+  date: DateTime.now(),
+  activityType: 'Running',
+  temperature: '22°C',
+);
+```
+
+### 2. FrameDesign
+**Localização**: `lib/models/frame_design.dart`
+
+Representa um design de frame para exibir dados de treino.
+
+**Propriedades**:
+```dart
+class FrameDesign {
+  final String id;                    // ID único
+  final String name;                  // Nome do design
+  final Color backgroundColor;        // Cor de fundo
+  final Color textColor;              // Cor do texto
+  final FramePosition position;       // Posição (bottom/top/center)
+  final FrameStyle style;             // Estilo (minimal/sport/elegant/bold)
+  
+  // Background pré-configurado
+  final bool hasPresetBackground;
+  final List<Color> presetBackgroundColors;
+  final bool presetBackgroundIsGradient;
+  
+  // Posição customizável
+  final double? customOffsetX;         // Offset horizontal (-1.0 a 1.0)
+  final double? customOffsetY;         // Offset vertical (-1.0 a 1.0)
+  final bool useCustomPosition;       // Usar posição customizada
+  
+  // Builder customizado
+  final Widget Function(bool isDragging, dynamic workoutData)? customFrameBuilder;
+}
+```
+
+**Enums**:
+```dart
+enum FramePosition {
+  bottom,
+  top,
+  center,
+}
+
+enum FrameStyle {
+  minimal,
+  sport,
+  elegant,
+  bold,
+}
+```
+
+**Uso**:
+```dart
+final design = FrameDesign(
+  id: 'minimal',
+  name: 'Minimal',
+  backgroundColor: Colors.black,
+  textColor: Colors.white,
+  position: FramePosition.bottom,
+  style: FrameStyle.minimal,
+);
+```
+
+### 3. WidgetInstance
+**Localização**: `lib/models/widget_instance.dart`
+
+Representa uma instância de um widget adicionado ao editor.
+
+**Propriedades**:
+```dart
+class WidgetInstance {
+  final String id;                    // ID único
+  final FrameDesign design;           // Design do widget
+  Offset position;                    // Posição na tela
+  double scale;                        // Escala (1.0 = tamanho normal)
+  double rotation;                    // Rotação em graus
+  bool isDragging;                    // Se está sendo arrastado
+  bool isDeleting;                    // Se está sendo deletado
+  Size? renderedSize;                 // Tamanho após renderização
+}
+```
+
+**Métodos**:
+```dart
+// Criar cópia com mudanças
+WidgetInstance copyWith({
+  Offset? position,
+  double? scale,
+  double? rotation,
+  // ...
+})
+```
+
+**Uso**:
+```dart
+final widget = WidgetInstance(
+  id: 'widget_1',
+  design: frameDesign,
+  position: Offset(100, 200),
+  scale: 1.0,
+  rotation: 0.0,
+);
+
+// Atualizar posição
+final updated = widget.copyWith(position: Offset(150, 250));
+```
+
+### 4. SubscriptionProduct
+**Localização**: `lib/models/subscription_product.dart`
+
+Representa um produto de assinatura.
+
+**Propriedades**:
+```dart
+class SubscriptionProduct {
+  final String id;                    // ID do produto
+  final String title;                 // Título
+  final String description;            // Descrição
+  final String price;                 // Preço formatado
+  final String period;                // Período (mensal/anual/vitalício)
+  final Package package;              // Package do RevenueCat
+}
+```
+
+## Registros e Factories
+
+### WidgetsRegistry
+**Localização**: `lib/widgets/widgets_registry.dart`
+
+Registra todos os widgets disponíveis para adicionar ao editor.
+
+```dart
+// Obter todos os widgets
+List<FrameDesign> allWidgets = WidgetsRegistry.allWidgets;
+
+// Obter widget por ID
+FrameDesign? widget = WidgetsRegistry.getWidgetById('minimal');
+```
+
+### FiltersRegistry
+**Localização**: `lib/filters/filters_registry.dart`
+
+Registra todos os filtros disponíveis.
+
+```dart
+// Obter todos os filtros
+List<ImageFilter> allFilters = FiltersRegistry.allFilters;
+
+// Obter filtro por nome
+ImageFilter? filter = FiltersRegistry.getFilterByName('black_white');
+```
+
+## Serialização
+
+Atualmente, os modelos não implementam serialização JSON. Se necessário no futuro, considere usar:
+- `json_serializable` para geração automática
+- `json_annotation` para anotações
+
+## Boas Práticas
+
+1. **Imutabilidade**: Prefira propriedades `final` quando possível
+2. **Construtores Factory**: Use para criar instâncias de diferentes fontes
+3. **Métodos Helper**: Adicione métodos úteis como `formattedDate`, `activityEmoji`
+4. **Validação**: Valide dados nos construtores quando apropriado
+5. **Documentação**: Documente propriedades e métodos complexos
+

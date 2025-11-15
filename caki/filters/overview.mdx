@@ -1,0 +1,238 @@
+---
+title: "Sistema de Filtros"
+description: "Sistema de filtros de imagem do Caki"
+---
+
+## Visão Geral
+
+O sistema de filtros permite aplicar efeitos visuais às imagens no editor. Todos os filtros implementam a interface `ImageFilter` e são registrados no `FiltersRegistry`.
+
+## Estrutura
+
+```
+filters/
+├── image_filter.dart          # Interface base
+├── filters_registry.dart      # Registro de filtros
+├── none_filter.dart           # Sem filtro (original)
+├── black_white_filter.dart    # Preto e branco
+├── cool_filter.dart           # Filtro cool (azulado)
+├── warm_filter.dart          # Filtro warm (amarelado)
+├── film_airy_filter.dart     # Filtro filme aéreo
+├── flower_filter.dart        # Filtro floral
+├── friends_filter.dart        # Filtro friends
+├── moody_orange_city_filter.dart  # Filtro laranja urbano
+├── napoli_filter.dart        # Filtro napoli
+└── sunny_landscape_filter.dart    # Filtro paisagem ensolarada
+```
+
+## Interface ImageFilter
+
+Todos os filtros implementam a interface `ImageFilter`:
+
+```dart
+abstract class ImageFilter {
+  String get name;              // Nome do filtro
+  Widget apply(Widget image);  // Aplica o filtro ao widget de imagem
+}
+```
+
+## Filtros Disponíveis
+
+### 1. NoneFilter
+**Arquivo**: `lib/filters/none_filter.dart`
+
+Filtro padrão que não aplica nenhum efeito (imagem original).
+
+```dart
+class NoneFilter implements ImageFilter {
+  @override
+  String get name => 'None';
+  
+  @override
+  Widget apply(Widget image) {
+    return image; // Retorna imagem sem modificações
+  }
+}
+```
+
+### 2. BlackWhiteFilter
+**Arquivo**: `lib/filters/black_white_filter.dart`
+
+Converte a imagem para preto e branco usando `ColorFiltered`.
+
+```dart
+ColorFiltered(
+  colorFilter: ColorFilter.matrix([
+    0.2126, 0.7152, 0.0722, 0, 0,  // R
+    0.2126, 0.7152, 0.0722, 0, 0,  // G
+    0.2126, 0.7152, 0.0722, 0, 0,  // B
+    0, 0, 0, 1, 0,                 // Alpha
+  ]),
+  child: image,
+)
+```
+
+### 3. CoolFilter
+**Arquivo**: `lib/filters/cool_filter.dart`
+
+Aplica um tom azulado/frio à imagem.
+
+### 4. WarmFilter
+**Arquivo**: `lib/filters/warm_filter.dart`
+
+Aplica um tom amarelado/quente à imagem.
+
+### 5. FilmAiryFilter
+**Arquivo**: `lib/filters/film_airy_filter.dart`
+
+Efeito de filme aéreo com cores suaves e levemente desbotadas.
+
+### 6. FlowerFilter
+**Arquivo**: `lib/filters/flower_filter.dart`
+
+Efeito floral com cores vibrantes e saturadas.
+
+### 7. FriendsFilter
+**Arquivo**: `lib/filters/friends_filter.dart`
+
+Efeito inspirado em fotos de amigos com cores quentes.
+
+### 8. MoodyOrangeCityFilter
+**Arquivo**: `lib/filters/moody_orange_city_filter.dart`
+
+Efeito urbano com tons laranja e moody.
+
+### 9. NapoliFilter
+**Arquivo**: `lib/filters/napoli_filter.dart`
+
+Efeito inspirado em fotos de Nápoles com cores mediterrâneas.
+
+### 10. SunnyLandscapeFilter
+**Arquivo**: `lib/filters/sunny_landscape_filter.dart`
+
+Efeito de paisagem ensolarada com cores brilhantes.
+
+## FiltersRegistry
+
+**Localização**: `lib/filters/filters_registry.dart`
+
+Registra todos os filtros disponíveis e fornece métodos para acessá-los.
+
+```dart
+class FiltersRegistry {
+  // Lista de todos os filtros
+  static List<ImageFilter> get allFilters => [
+    NoneFilter(),
+    BlackWhiteFilter(),
+    CoolFilter(),
+    WarmFilter(),
+    FilmAiryFilter(),
+    FlowerFilter(),
+    FriendsFilter(),
+    MoodyOrangeCityFilter(),
+    NapoliFilter(),
+    SunnyLandscapeFilter(),
+  ];
+  
+  // Obter filtro por nome
+  static ImageFilter? getFilterByName(String name) {
+    return allFilters.firstWhere(
+      (filter) => filter.name == name,
+      orElse: () => NoneFilter(),
+    );
+  }
+  
+  // Obter filtro por índice
+  static ImageFilter getFilterByIndex(int index) {
+    if (index < 0 || index >= allFilters.length) {
+      return NoneFilter();
+    }
+    return allFilters[index];
+  }
+}
+```
+
+## Uso no Editor
+
+No `EditorScreen`, os filtros são aplicados através do `FilterManager`:
+
+```dart
+// Obter filtro atual
+ImageFilter currentFilter = FiltersRegistry.getFilterByIndex(_currentFilterIndex);
+
+// Aplicar filtro
+Widget filteredImage = currentFilter.apply(imageWidget);
+```
+
+## Navegação entre Filtros
+
+Os usuários podem navegar entre filtros:
+- **Swipe horizontal**: Deslizar para esquerda/direita
+- **Carrossel**: Lista horizontal de filtros
+- **Overlay de nome**: Mostra nome do filtro por 2 segundos ao trocar
+
+## Implementação de Novos Filtros
+
+Para adicionar um novo filtro:
+
+1. **Criar classe do filtro**:
+```dart
+class MyCustomFilter implements ImageFilter {
+  @override
+  String get name => 'My Custom Filter';
+  
+  @override
+  Widget apply(Widget image) {
+    return ColorFiltered(
+      colorFilter: ColorFilter.matrix([
+        // Matriz de transformação de cores
+        1, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 0, 1, 0,
+      ]),
+      child: image,
+    );
+  }
+}
+```
+
+2. **Registrar no FiltersRegistry**:
+```dart
+static List<ImageFilter> get allFilters => [
+  // ... outros filtros
+  MyCustomFilter(),
+];
+```
+
+## Matriz de Cores
+
+Filtros de cor usam matrizes 5x4 para transformar cores:
+
+```
+[R']   [a b c d e]   [R]
+[G'] = [f g h i j] × [G]
+[B']   [k l m n o]   [B]
+[A']   [p q r s t]   [A]
+                      [1]
+```
+
+Onde:
+- **a-o**: Coeficientes de transformação
+- **R, G, B, A**: Cores originais (0-1)
+- **R', G', B', A'**: Cores resultantes
+
+## Performance
+
+- Filtros são aplicados em tempo real usando `ColorFiltered`
+- Não há processamento pesado de imagem
+- Renderização otimizada com `RepaintBoundary` quando necessário
+
+## Boas Práticas
+
+1. **Nomes descritivos**: Use nomes claros e descritivos
+2. **Efeitos sutis**: Filtros devem melhorar, não dominar a imagem
+3. **Consistência**: Mantenha padrão visual consistente
+4. **Performance**: Evite processamento pesado em tempo real
+5. **Testes**: Teste filtros em diferentes tipos de imagem
+

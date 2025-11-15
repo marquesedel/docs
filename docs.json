@@ -66,6 +66,65 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Caki",
+        "groups": [
+          {
+            "group": "Introdução",
+            "pages": [
+              "caki/introduction"
+            ]
+          },
+          {
+            "group": "Arquitetura",
+            "pages": [
+              "caki/architecture/overview",
+              "caki/architecture/screens",
+              "caki/architecture/services"
+            ]
+          },
+          {
+            "group": "Design System",
+            "pages": [
+              "caki/design-system/introduction"
+            ]
+          },
+          {
+            "group": "Modelos",
+            "pages": [
+              "caki/models/overview"
+            ]
+          },
+          {
+            "group": "Telas",
+            "pages": [
+              "caki/screens/camera",
+              "caki/screens/editor"
+            ]
+          },
+          {
+            "group": "Sistemas",
+            "pages": [
+              "caki/filters/overview",
+              "caki/widgets/overview"
+            ]
+          },
+          {
+            "group": "Guias",
+            "pages": [
+              "caki/guides/getting-started",
+              "caki/guides/development"
+            ]
+          },
+          {
+            "group": "Configuração",
+            "pages": [
+              "caki/configuration/setup",
+              "caki/configuration/dependencies"
+            ]
+          }
+        ]
       }
     ],
     "global": {

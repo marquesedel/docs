@@ -1,0 +1,223 @@
+---
+title: "Tela de Câmera"
+description: "Documentação da tela de captura de fotos do Caki"
+---
+
+## Visão Geral
+
+A `CameraScreen` é responsável por capturar fotos usando a câmera nativa do dispositivo ou selecionar fotos da galeria.
+
+**Localização**: `lib/screens/camera/camera_screen.dart`
+
+## Funcionalidades
+
+- Captura de fotos com câmera frontal ou traseira
+- Seleção de fotos da galeria
+- Zoom e foco
+- Preview instantâneo
+- Navegação para editor após captura
+
+## Estrutura de Componentes
+
+### CameraScreen (Principal)
+Gerencia o estado geral da câmera e coordena todos os componentes.
+
+### Componentes
+
+#### CameraTopBar
+**Localização**: `lib/screens/camera/widgets/camera_top_bar.dart`
+
+Barra superior com:
+- Botão de fechar
+- Indicador de câmera ativa (frontal/traseira)
+- Botão de configurações (se aplicável)
+
+#### CameraBottomControls
+**Localização**: `lib/screens/camera/widgets/camera_bottom_controls.dart`
+
+Controles inferiores com:
+- Botão de captura (grande, central)
+- Botão de galeria (esquerda)
+- Botão de trocar câmera (direita)
+
+#### CameraSelector
+**Localização**: `lib/screens/camera/widgets/camera_selector.dart`
+
+Seletor de câmera (frontal/traseira) com:
+- Ícones visuais
+- Animação de transição
+- Feedback visual
+
+#### GalleryButton
+**Localização**: `lib/screens/camera/widgets/gallery_button.dart`
+
+Botão para acessar galeria com:
+- Preview da última foto
+- Indicador visual
+- Abertura do seletor de imagens
+
+#### FocusIndicator
+**Localização**: `lib/screens/camera/widgets/focus_indicator.dart`
+
+Indicador de foco que aparece quando o usuário toca na tela para focar.
+
+#### ControlButton
+**Localização**: `lib/screens/camera/widgets/control_button.dart`
+
+Botão de controle reutilizável com estilo blur.
+
+## Managers
+
+### ZoomManager
+**Localização**: `lib/screens/camera/managers/zoom_manager.dart`
+
+Gerencia zoom da câmera:
+- Zoom inicial
+- Zoom mínimo/máximo
+- Gestos de pinch para zoom
+- Atualização de zoom
+
+## Services
+
+### CameraService
+**Localização**: `lib/screens/camera/services/camera_service.dart`
+
+Serviço para gerenciar a câmera:
+- Inicialização da câmera
+- Controle de câmera (frontal/traseira)
+- Captura de fotos
+- Gerenciamento de permissões
+
+**Métodos Principais**:
+```dart
+// Inicializar câmera
+Future<void> initialize();
+
+// Trocar câmera
+Future<void> switchCamera();
+
+// Capturar foto
+Future<String?> takePicture();
+
+// Verificar permissões
+Future<bool> hasPermission();
+```
+
+### GalleryService
+**Localização**: `lib/screens/camera/services/gallery_service.dart`
+
+Serviço para acessar galeria:
+- Seleção de imagens
+- Preview de última foto
+- Gerenciamento de permissões
+
+**Métodos Principais**:
+```dart
+// Selecionar imagem da galeria
+Future<String?> pickImage();
+
+// Obter última foto
+Future<String?> getLastPhoto();
+```
+
+## Utils
+
+### CameraLabelHelper
+**Localização**: `lib/screens/camera/utils/camera_label_helper.dart`
+
+Helper para labels e textos da câmera:
+- Labels de câmera (frontal/traseira)
+- Mensagens de erro
+- Textos de UI
+
+## Fluxo de Uso
+
+1. **Abertura da Câmera**
+   ```
+   User abre app → SplashScreen → CameraScreen
+   ```
+
+2. **Captura de Foto**
+   ```
+   User toca botão de captura → CameraService.takePicture() → 
+   Navega para EditorScreen com imagePath
+   ```
+
+3. **Seleção da Galeria**
+   ```
+   User toca botão de galeria → GalleryService.pickImage() → 
+   Navega para EditorScreen com imagePath
+   ```
+
+4. **Troca de Câmera**
+   ```
+   User toca botão de trocar → CameraService.switchCamera() → 
+   Atualiza preview
+   ```
+
+## Permissões
+
+### iOS
+Adicionar no `Info.plist`:
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Precisamos acessar sua câmera para capturar fotos de treino</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Precisamos acessar sua galeria para selecionar fotos</string>
+```
+
+### Android
+Permissões já configuradas no `AndroidManifest.xml`:
+- `CAMERA`
+- `READ_EXTERNAL_STORAGE`
+- `WRITE_EXTERNAL_STORAGE`
+
+## Eventos Analytics
+
+A tela registra os seguintes eventos:
+
+- **Camera Opened**: Quando a câmera é aberta
+- **Photo Taken**: Quando uma foto é capturada
+  - Propriedades: `Camera Type` (frontal/traseira)
+- **Photo From Gallery**: Quando uma foto é selecionada da galeria
+- **Editor Opened**: Quando navega para o editor
+
+**Exemplo**:
+```dart
+AnalyticsService().logCameraOpened();
+AnalyticsService().logPhotoTaken(cameraType: 'back');
+AnalyticsService().logPhotoFromGallery();
+AnalyticsService().logEditorOpened();
+```
+
+## Tratamento de Erros
+
+A tela trata os seguintes erros:
+
+- **Sem permissão de câmera**: Exibe mensagem e solicita permissão
+- **Câmera não disponível**: Exibe tela de erro (`CameraErrorScreen`)
+- **Erro ao capturar**: Exibe snackbar com mensagem de erro
+- **Erro ao acessar galeria**: Exibe mensagem de erro
+
+## UI/UX
+
+### Design
+- Background preto para melhor visualização
+- Botões com blur effect para destaque
+- Animações suaves em transições
+- Feedback visual em todas as ações
+
+### Acessibilidade
+- Labels descritivos para screen readers
+- Tamanhos de toque adequados (mínimo 44x44)
+- Contraste adequado em todos os elementos
+
+## Melhorias Futuras
+
+- [ ] Suporte para modo vídeo
+- [ ] Filtros em tempo real na câmera
+- [ ] Grid e linhas de guia
+- [ ] Timer para captura automática
+- [ ] Modo burst
+- [ ] HDR automático
+
